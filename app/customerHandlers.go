@@ -3,18 +3,11 @@ package app
 import (
 	"encoding/json"
 	"encoding/xml"
-	"fmt"
 	"go-banking/service"
 	"net/http"
 
 	"github.com/gorilla/mux"
 )
-
-type Customer struct {
-	Name string `json:"name" xml:"name"`
-	City string `json:"city" xml:"city"`
-	Zipcode string `json:"zipcode" xml:"zipcode"`
-}
 
 type CustomerHandlers struct {
 	service service.CustomerService
@@ -44,11 +37,24 @@ func (ch *CustomerHandlers) getCustomer(w http.ResponseWriter, r *http.Request) 
 	customer,err := ch.service.GetCustomer(id)
 
 	if err != nil {
-		w.WriteHeader(err.Code)
-		fmt.Fprint(w, err.Message)
+		// w.Header().Add("Content-type", "application/json")
+		// w.WriteHeader(err.Code)
+		// fmt.Fprint(w, err.Message)
+		// json.NewEncoder(w).Encode(err.AsMessage())
+		message := err.AsMessage()
+		writeResponse(w, err.Code, message)
 		return
 	}
 
+	// w.Header().Add("Content-type", "application/json")
+	// json.NewEncoder(w).Encode(customer)
+	writeResponse(w,http.StatusOK,customer)
+}
+
+func writeResponse(w http.ResponseWriter,code int, data any ) {
 	w.Header().Add("Content-type", "application/json")
-	json.NewEncoder(w).Encode(customer)
+	w.WriteHeader(code)
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		panic(err)
+	}
 }
