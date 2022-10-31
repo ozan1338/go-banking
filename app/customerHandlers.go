@@ -13,25 +13,15 @@ type CustomerHandlers struct {
 }
 
 func (ch *CustomerHandlers) getAllCustomer(w http.ResponseWriter, r *http.Request) {
-	// customers := []Customer{
-	// 	{Name: "Aish", City: "Japan", Zipcode: "110075"},
-	// 	{Name: "Rob", City: "Korea", Zipcode: "11076"},
-	// }
+	status := r.URL.Query().Get("status")
 
-	customers, err := ch.service.GetAllCustomer()
+	customers, err := ch.service.GetAllCustomer(status)
 
 	if err != nil {
 		message := err.AsMessage()
 		writeResponse(w, err.Code, message)
+		return
 	}
-
-	// if r.Header.Get("Content-Type") == "application/xml" {
-	// 	w.Header().Add("Content-type", "application/xml")
-	// 	xml.NewEncoder(w).Encode(customers)
-	// } else {
-	// 	w.Header().Add("Content-type", "application/json")
-	// 	json.NewEncoder(w).Encode(customers)
-	// }
 
 	writeResponse(w, http.StatusOK, customers)
 }
