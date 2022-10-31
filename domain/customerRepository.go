@@ -2,6 +2,7 @@ package domain
 
 import (
 	"database/sql"
+	"fmt"
 	"go-banking/util/resp_error"
 	"log"
 	"os"
@@ -24,7 +25,7 @@ type CustomerRepositoryDB struct {
 	client *sql.DB
 }
 
-func (d CustomerRepositoryDB) FindAll() ([]Customer,error) {
+func (d CustomerRepositoryDB) FindAll() ([]Customer,*resp_error.AppError) {
 
 	findAllSql := "select customer_id,name,city,zipcode,date_of_birth,status from customers"
 	
@@ -32,6 +33,8 @@ func (d CustomerRepositoryDB) FindAll() ([]Customer,error) {
 
 	if err != nil {
 		log.Println("Error While Quering customers table" + err.Error())
+
+		return nil, resp_error.NewUnexpectedError(fmt.Sprintf("Error While Quering customers table %v", err.Error()))
 	}
 
 	customers := make([]Customer, 0)
@@ -41,6 +44,7 @@ func (d CustomerRepositoryDB) FindAll() ([]Customer,error) {
 		err := rows.Scan(&c.Id, &c.Name, &c.City, &c.Zipcode, &c.DateOfBirth, &c.Status)
 		if err != nil {
 			log.Println("Error While Scanning customers" + err.Error())
+			return nil, resp_error.NewUnexpectedError(fmt.Sprintf("Error While Quering customers table %v", err.Error()))
 		}
 		customers = append(customers, c)
 	}

@@ -2,7 +2,6 @@ package app
 
 import (
 	"encoding/json"
-	"encoding/xml"
 	"go-banking/service"
 	"net/http"
 
@@ -19,15 +18,22 @@ func (ch *CustomerHandlers) getAllCustomer(w http.ResponseWriter, r *http.Reques
 	// 	{Name: "Rob", City: "Korea", Zipcode: "11076"},
 	// }
 
-	customers, _ := ch.service.GetAllCustomer()
+	customers, err := ch.service.GetAllCustomer()
 
-	if r.Header.Get("Content-Type") == "application/xml" {
-		w.Header().Add("Content-type", "application/xml")
-		xml.NewEncoder(w).Encode(customers)
-	} else {
-		w.Header().Add("Content-type", "application/json")
-		json.NewEncoder(w).Encode(customers)
+	if err != nil {
+		message := err.AsMessage()
+		writeResponse(w, err.Code, message)
 	}
+
+	// if r.Header.Get("Content-Type") == "application/xml" {
+	// 	w.Header().Add("Content-type", "application/xml")
+	// 	xml.NewEncoder(w).Encode(customers)
+	// } else {
+	// 	w.Header().Add("Content-type", "application/json")
+	// 	json.NewEncoder(w).Encode(customers)
+	// }
+
+	writeResponse(w, http.StatusOK, customers)
 }
 
 func (ch *CustomerHandlers) getCustomer(w http.ResponseWriter, r *http.Request) {
