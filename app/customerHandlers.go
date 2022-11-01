@@ -33,17 +33,11 @@ func (ch *CustomerHandlers) getCustomer(w http.ResponseWriter, r *http.Request) 
 	customer,err := ch.service.GetCustomer(id)
 
 	if err != nil {
-		// w.Header().Add("Content-type", "application/json")
-		// w.WriteHeader(err.Code)
-		// fmt.Fprint(w, err.Message)
-		// json.NewEncoder(w).Encode(err.AsMessage())
 		message := err.AsMessage()
 		writeResponse(w, err.Code, message)
 		return
 	}
 
-	// w.Header().Add("Content-type", "application/json")
-	// json.NewEncoder(w).Encode(customer)
 	writeResponse(w,http.StatusOK,customer)
 }
 

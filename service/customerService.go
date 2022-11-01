@@ -2,12 +2,13 @@ package service
 
 import (
 	"go-banking/domain"
+	"go-banking/dto"
 	"go-banking/util/resp_error"
 )
 
 type CustomerService interface {
 	GetAllCustomer(string) ([]domain.Customer, *resp_error.AppError)
-	GetCustomer(string) (*domain.Customer, *resp_error.AppError)
+	GetCustomer(string) (*dto.CustomerResponse, *resp_error.AppError)
 }
 
 type DefaultCustomerService struct {
@@ -24,8 +25,14 @@ func (s DefaultCustomerService) GetAllCustomer(status string) ([]domain.Customer
 	}
 	return s.repo.FindAll(status)
 }
-func (s DefaultCustomerService) GetCustomer(id string) (*domain.Customer, *resp_error.AppError) {
-	return s.repo.ById(id)
+func (s DefaultCustomerService) GetCustomer(id string) (*dto.CustomerResponse, *resp_error.AppError) {
+	c, err := s.repo.ById(id)
+	if err != nil {
+		return nil, err
+	}
+	response := c.ToDto()
+	
+	return &response,nil
 }
 
 func NewCustomerService(repository domain.CustomerRepository) (DefaultCustomerService) {
