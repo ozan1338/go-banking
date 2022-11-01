@@ -3,8 +3,8 @@ package domain
 import (
 	"database/sql"
 	"fmt"
+	logger "go-banking/log"
 	"go-banking/util/resp_error"
-	"log"
 	"os"
 	"time"
 
@@ -38,7 +38,7 @@ func (d CustomerRepositoryDB) FindAll(status string) ([]Customer,*resp_error.App
 	
 
 	if err != nil {
-		log.Println("Error While Quering customers table" + err.Error())
+		logger.Error("Error While Quering customers table" + err.Error())
 
 		return nil, resp_error.NewUnexpectedError(fmt.Sprintf("Error While Quering customers table %v", err.Error()))
 	}
@@ -49,7 +49,7 @@ func (d CustomerRepositoryDB) FindAll(status string) ([]Customer,*resp_error.App
 		var c Customer
 		err := rows.Scan(&c.Id, &c.Name, &c.City, &c.Zipcode, &c.DateOfBirth, &c.Status)
 		if err != nil {
-			log.Println("Error While Scanning customers" + err.Error())
+			logger.Error("Error While Scanning customers" + err.Error())
 			return nil, resp_error.NewUnexpectedError(fmt.Sprintf("Error While Quering customers table %v", err.Error()))
 		}
 		customers = append(customers, c)
@@ -68,7 +68,7 @@ func (d CustomerRepositoryDB) ById(id string) (*Customer, *resp_error.AppError) 
 		if err == sql.ErrNoRows{
 			return nil, resp_error.NewNotFoundError("customer not found")
 		} else {
-			log.Println("Error While Scanning Customer")
+			logger.Error("Error While Scanning Customer")
 			return nil, resp_error.NewUnexpectedError("unexpected database error")
 		}
 	}
