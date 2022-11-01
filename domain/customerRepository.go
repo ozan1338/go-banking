@@ -9,6 +9,7 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
 )
 
 const (
@@ -22,48 +23,37 @@ var (
 )
 
 type CustomerRepositoryDB struct {
-	client *sql.DB
+	client *sqlx.DB
 }
 
 func (d CustomerRepositoryDB) FindAll(status string) ([]Customer,*resp_error.AppError) {
-	var rows *sql.Rows
+	// var rows *sql.Rows
 	var err error
+	customers := make([]Customer, 0)
 	if status == "" {
 		findAllSql := "select customer_id,name,city,zipcode,date_of_birth,status from customers"
-		rows, err = d.client.Query(findAllSql)
+		err = d.client.Select(&customers, findAllSql)
 	} else {
 		findAllSql := "select customer_id,name,city,zipcode,date_of_birth,status from customers where status = ?"
-		rows, err = d.client.Query(findAllSql, status)
+		err = d.client.Select(&customers, findAllSql)
 	}
 	
 
 	if err != nil {
-		logger.Error("Error While Quering customers table" + err.Error())
-
+		logger.Error("Error While Quering customers table " + err.Error())
 		return nil, resp_error.NewUnexpectedError(fmt.Sprintf("Error While Quering customers table %v", err.Error()))
 	}
-
-	customers := make([]Customer, 0)
-
-	for rows.Next() {
-		var c Customer
-		err := rows.Scan(&c.Id, &c.Name, &c.City, &c.Zipcode, &c.DateOfBirth, &c.Status)
-		if err != nil {
-			logger.Error("Error While Scanning customers" + err.Error())
-			return nil, resp_error.NewUnexpectedError(fmt.Sprintf("Error While Quering customers table %v", err.Error()))
-		}
-		customers = append(customers, c)
-	}
-
+	
 	return customers,nil
 }
 
 func (d CustomerRepositoryDB) ById(id string) (*Customer, *resp_error.AppError) {
 	customerSql := "select customer_id,name,city,zipcode,date_of_birth,status from customers where customer_id = ?"
 
-	row := d.client.QueryRow(customerSql, id)
+	// row := d.client.QueryRow(customerSql, id)
 	var c Customer
-	err := row.Scan(&c.Id, &c.Name, &c.City, &c.Zipcode, &c.DateOfBirth, &c.Status)
+	err := d.client.Get(&c, customerSql, id)
+	// err := row.Scan(&c.Id, &c.Name, &c.City, &c.Zipcode, &c.DateOfBirth, &c.Status)
 	if err != nil {
 		if err == sql.ErrNoRows{
 			return nil, resp_error.NewNotFoundError("customer not found")
@@ -77,7 +67,7 @@ func (d CustomerRepositoryDB) ById(id string) (*Customer, *resp_error.AppError) 
 }
 
 func NewCustomerRepositoryDB() CustomerRepositoryDB{
-	client, err := sql.Open(DBDriver, DBSource)
+	client, err := sqlx.Open(DBDriver, DBSource)
 	if err != nil {
 		panic(err)
 	}
