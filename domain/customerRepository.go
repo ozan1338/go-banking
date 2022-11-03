@@ -5,21 +5,9 @@ import (
 	"fmt"
 	logger "go-banking/log"
 	"go-banking/util/resp_error"
-	"os"
-	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
-)
-
-const (
-	db_driver = "DB_DRIVER"
-	db_source = "DB_SOURCE"
-)
-
-var (
-	DBDriver = os.Getenv(db_driver)
-	DBSource = os.Getenv(db_source)
 )
 
 type CustomerRepositoryDB struct {
@@ -66,15 +54,6 @@ func (d CustomerRepositoryDB) ById(id string) (*Customer, *resp_error.AppError) 
 	return &c,nil
 }
 
-func NewCustomerRepositoryDB() CustomerRepositoryDB{
-	client, err := sqlx.Open(DBDriver, DBSource)
-	if err != nil {
-		panic(err)
-	}
-	// See "Important settings" section.
-	client.SetConnMaxLifetime(time.Minute * 3)
-	client.SetMaxOpenConns(10)
-	client.SetMaxIdleConns(10)
-
-	return CustomerRepositoryDB{client: client}
+func NewCustomerRepositoryDB(dbClient *sqlx.DB) CustomerRepositoryDB{
+	return CustomerRepositoryDB{client: dbClient}
 }
