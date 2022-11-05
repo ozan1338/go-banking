@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"database/sql"
 	"go-banking/util/resp_error"
 	"strconv"
 
@@ -29,6 +30,23 @@ func (d AccountRepositoryDB) Save(a Account) (*Account, *resp_error.AppError) {
 	}
 
 	a.AccountId = strconv.FormatInt(id, 10)
+
+	return &a, nil
+}
+
+func (d AccountRepositoryDB) GetById(account_id string) (*Account,*resp_error.AppError) {
+	sqlGetById := "select account_id, customer_id, opening_date, account_type, amount, status from accounts where account_id = ?"
+
+	var a Account
+	err := d.client.Get(&a, sqlGetById, account_id)
+	if err != nil {
+		if err == sql.ErrNoRows{
+			return nil, resp_error.NewNotFoundError("account not found")
+		} else {
+			logger.Error("Error While Scanning Customer: "+ err.Error())
+			return nil, resp_error.NewUnexpectedError("unexpected database error")
+		}
+	}
 
 	return &a, nil
 }
