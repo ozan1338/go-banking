@@ -4,9 +4,8 @@ import (
 	"go-banking/domain"
 	"go-banking/dto"
 	"go-banking/util/resp_error"
-	"time"
 )
-
+const dbTSLayout = "2006-01-02 15:04:05"
 type AccountService interface {
 	NewAccount(dto.NewAccountRequest) (*dto.NewAccountResponse, *resp_error.AppError)
 }
@@ -22,16 +21,9 @@ func (s DefaultAccountService) NewAccount(req dto.NewAccountRequest) (*dto.NewAc
 		return nil, err
 	}
 
-	a := domain.Account{
-		AccountId: "",
-		CustomerId: req.CustomerId,
-		OpeningDate: time.Now().Format("2006-01-02 15:04:05"),
-		AccountType: req.AccountType,
-		Amount: req.Amount,
-		Status: "1",
-	}
+	account := domain.NewAccount(req.CustomerId, req.AccountType, req.Amount)
 	
-	newAccount , err := s.repo.Save(a)
+	newAccount , err := s.repo.Save(account)
 	if err != nil {
 		return nil,err
 	}
